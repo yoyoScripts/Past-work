@@ -8,7 +8,7 @@
         {
           "type": "image",
           "title": "Combo + hit feedback",
-          "src": "./assets/combat_01.png",
+          "src": "./assets/combat1.png",
           "note": "Lightweight combo chain with clean feedback.",
           "tags": ["Combat", "UI", "VFX"]
         },
