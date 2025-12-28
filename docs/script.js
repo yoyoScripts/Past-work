@@ -3,7 +3,7 @@ const sections = [
     title: "Combat Systems",
     items: [
       { type: "video", src: "assets/project1.png" },
-      { type: "image", src: "assets/combat/hitbox.png" }
+      { type: "image", src: "assets/project1.png" }
     ]
   },
   {
@@ -19,13 +19,6 @@ const sections = [
     ]
   }
 ];
-  {
-    title: "Combat Systems",
-    items: [
-      { type: "video", src: "assets/project1.png" },
-      { type: "image", src: "assets/combat/hitbox.png" }
-    ]
-  },
 const portfolio = document.getElementById("portfolio");
 
 sections.forEach(section => {
