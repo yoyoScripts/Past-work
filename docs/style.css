@@ -1,0 +1,48 @@
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #0b0f1a;
+  color: #ffffff;
+}
+
+header {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+header p {
+  opacity: 0.7;
+  font-size: 16px;
+}
+
+section {
+  max-width: 1200px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+section h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+video, img {
+  width: 100%;
+  border-radius: 14px;
+  background: black;
+}
