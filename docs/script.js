@@ -2,8 +2,7 @@ const sections = [
   {
     title: "Combat Systems",
     items: [
-      { type: "video", src: "assets/combat/combo.mp4" },
-      { type: "image", src: "assets/combat/hitbox.png" }
+      { type: "video", src: "assets/project1.png" },
     ]
   },
   {
