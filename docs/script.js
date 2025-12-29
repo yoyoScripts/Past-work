@@ -26,26 +26,41 @@ const sections = [
 ];
 
 const portfolio = document.getElementById("portfolio");
+const searchInput = document.getElementById("search");
 
-sections.forEach(section => {
-  const sec = document.createElement("section");
-  sec.innerHTML = `<h2>${section.title}</h2>`;
+function renderPortfolio(filterText = "") {
+  portfolio.innerHTML = "";
+  
+  const term = filterText.toLowerCase();
 
-  const grid = document.createElement("div");
-  grid.className = "grid";
+  sections.forEach(section => {
+    if (section.title.toLowerCase().includes(term)) {
+      const sec = document.createElement("section");
+      sec.innerHTML = `<h2>${section.title}</h2>`;
 
-  section.items.forEach(item => {
-    if (item.type === "video") {
-      grid.innerHTML += `
-        <video controls muted loop>
-          <source src="${item.src}" type="video/mp4">
-        </video>
-      `;
-    } else {
-      grid.innerHTML += `<img src="${item.src}">`;
+      const grid = document.createElement("div");
+      grid.className = "grid";
+
+      section.items.forEach(item => {
+        if (item.type === "video") {
+          grid.innerHTML += `
+            <video controls muted loop>
+              <source src="${item.src}" type="video/mp4">
+            </video>
+          `;
+        } else {
+          grid.innerHTML += `<img src="${item.src}">`;
+        }
+      });
+
+      sec.appendChild(grid);
+      portfolio.appendChild(sec);
     }
   });
+}
 
-  sec.appendChild(grid);
-  portfolio.appendChild(sec);
+searchInput.addEventListener("input", (e) => {
+  renderPortfolio(e.target.value);
 });
+
+renderPortfolio();
