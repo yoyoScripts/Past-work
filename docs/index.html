@@ -4,7 +4,83 @@
   <meta charset="UTF-8" />
   <title>Past Work</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #0b0f1a;
+      color: #fff;
+    }
+
+    .hero {
+      padding: 80px 20px 40px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin: 0;
+    }
+
+    .hero p {
+      opacity: 0.7;
+      margin-top: 10px;
+      margin-bottom: 30px;
+    }
+
+    #search {
+      padding: 12px 20px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 16px;
+      width: 100%;
+      max-width: 400px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #search:focus {
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+
+    section {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    section h2 {
+      font-size: 30px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      padding-bottom: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    video,
+    img {
+      width: 100%;
+      border-radius: 16px;
+      background: #000;
+      transition: transform 0.2s ease;
+    }
+
+    video:hover,
+    img:hover {
+      transform: scale(1.02);
+    }
+  </style>
 </head>
 <body>
 
@@ -16,6 +92,81 @@
 
 <main id="portfolio"></main>
 
-<script src="script.js"></script>
+<script>
+const sections = [
+  {
+    title: "Simple Systems",
+    items: [
+      { type: "image", src: "assets/project1.png" }
+    ]
+  },
+  {
+    title: "Big systems",
+    items: [
+      { type: "image", src: "assets/project2.png" }
+    ]
+  },
+  {
+    title: "Movement Systems",
+    items: [
+      { type: "video", src: "assets/movement/dash.mp4" }
+    ]
+  },
+  {
+    title: "Combat systems",
+    items: [
+      { type: "video", src: "assets/movement/dash.mp4" }
+    ]
+  }
+];
+
+const portfolio = document.getElementById("portfolio");
+const searchInput = document.getElementById("search");
+
+function renderPortfolio(filterText = "") {
+  portfolio.innerHTML = "";
+  
+  const term = filterText.toLowerCase();
+
+  sections.forEach(section => {
+    if (section.title.toLowerCase().includes(term)) {
+      const sec = document.createElement("section");
+      sec.innerHTML = `<h2>${section.title}</h2>`;
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+
+      section.items.forEach(item => {
+        if (item.type === "video") {
+          const vid = document.createElement('video');
+          vid.controls = true;
+          vid.muted = true;
+          vid.loop = true;
+          
+          const src = document.createElement('source');
+          src.src = item.src;
+          src.type = 'video/mp4';
+          
+          vid.appendChild(src);
+          grid.appendChild(vid);
+        } else {
+          const img = document.createElement('img');
+          img.src = item.src;
+          grid.appendChild(img);
+        }
+      });
+
+      sec.appendChild(grid);
+      portfolio.appendChild(sec);
+    }
+  });
+}
+
+searchInput.addEventListener("input", (e) => {
+  renderPortfolio(e.target.value);
+});
+
+renderPortfolio();
+</script>
 </body>
 </html>
