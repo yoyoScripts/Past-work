@@ -12,6 +12,7 @@
       --card-bg: #131825;
       --accent: #3b82f6; 
       --accent-glow: rgba(59, 130, 246, 0.4);
+      --robux-color: #00b06f; /* Robux Green */
       --text-main: #ffffff;
       --text-muted: #94a3b8;
       --border: rgba(255, 255, 255, 0.1);
@@ -57,6 +58,7 @@
       position: relative;
       white-space: nowrap;
       overflow: hidden;
+      text-decoration: none; /* For link */
     }
 
     .nav-btn:hover, .nav-btn.active {
@@ -112,7 +114,6 @@
     h1 { font-size: 3rem; font-weight: 700; letter-spacing: -1px; margin-bottom: 10px; }
     p.subtitle { color: var(--text-muted); font-size: 1.1rem; }
 
-    /* --- SEARCH BAR --- */
     #search {
       margin-top: 20px;
       max-width: 400px;
@@ -197,6 +198,64 @@
       color: var(--text-muted);
     }
 
+    /* --- PRICE & DISCOUNT STYLING --- */
+    .price-container {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      background: rgba(0,0,0,0.2);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .usd-price { color: #fff; }
+    
+    .robux-price { 
+      color: var(--robux-color); 
+      display: flex; 
+      align-items: center; 
+      gap: 5px; 
+    }
+
+    /* Discount Styling */
+    .discount-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .old-price {
+      text-decoration: line-through;
+      color: #64748b;
+      font-size: 0.8rem;
+    }
+
+    .new-price {
+      color: var(--robux-color);
+      font-weight: 800;
+      font-size: 1rem;
+      text-shadow: 0 0 10px rgba(0, 176, 111, 0.4);
+    }
+
+    .discount-tag {
+      background: var(--robux-color);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: auto;
+    }
+
     /* --- LIGHTBOX --- */
     .lightbox {
       position: fixed;
@@ -246,20 +305,6 @@
     }
     .close-btn:hover { color: var(--accent); }
 
-    /* --- PRICE TAG --- */
-    .price-tag {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: var(--accent);
-      color: #fff;
-      font-weight: 700;
-      padding: 6px 12px;
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      z-index: 5;
-    }
-
     /* --- ANIMATIONS --- */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -291,6 +336,15 @@
       </svg>
       <span class="nav-text">Store</span>
     </div>
+
+    <a href="dashboard.html" class="nav-btn" style="margin-top: auto; margin-bottom: 20px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="12" y1="8" x2="12" y2="16"></line>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+      </svg>
+      <span class="nav-text">Dashboard</span>
+    </a>
   </nav>
 
   <main class="main-content">
@@ -306,8 +360,7 @@
   </main>
 
 <script>
-// --- DATA ---
-// You can manually edit these lists in VS Code to add/remove items for now.
+// --- DATA LOADING ---
 const defaultWork = [
   { title: "Simple Systems", type: "image", src: "assets/project1.png" },
   { title: "Grand Marshal UI", type: "image", src: "assets/project2.png" },
@@ -315,12 +368,10 @@ const defaultWork = [
 ];
 
 const defaultStore = [
-  { title: "Rank Management GUI", type: "image", src: "assets/project1.png", price: 15 },
-  { title: "Clan War System", type: "image", src: "assets/project2.png", price: 40 }
+  { title: "Rank Management GUI", type: "image", src: "assets/project1.png", usd: 15, robux: 4500 },
+  { title: "Clan War System", type: "image", src: "assets/project2.png", usd: 40, robux: 6000, oldRobux: 8000 }
 ];
 
-// We still check localStorage in case you had old data saved, 
-// but new items must be added via code or your future dashboard site.
 let workData = JSON.parse(localStorage.getItem('myWorkData')) || defaultWork;
 let storeData = JSON.parse(localStorage.getItem('myStoreData')) || defaultStore;
 let currentTab = 'work';
@@ -345,26 +396,55 @@ function render(filter = "") {
     let mediaHtml = '';
     if (item.type === 'youtube') {
       let src = item.src;
-      // Safety convert to embed if user pasted standard link
       if(src.includes("watch?v=")) src = src.replace("watch?v=", "embed/");
       if(src.includes("youtu.be/")) src = src.replace("youtu.be/", "www.youtube.com/embed/");
-      
       mediaHtml = `<iframe src="${src}" allowfullscreen></iframe>`;
     } else {
       mediaHtml = `<img src="${item.src}" alt="${item.title}">`;
     }
 
-    const priceHtml = item.price ? `<div class="price-tag">$${item.price}</div>` : '';
+    // --- PRICE LOGIC ---
+    let priceHtml = '';
+    if (currentTab === 'store') {
+      // Robux Logic
+      let robuxDisplay = '';
+      if (item.oldRobux && item.oldRobux > item.robux) {
+        // DISCOUNT MODE
+        robuxDisplay = `
+          <div class="discount-wrapper">
+             <span class="old-price">${item.oldRobux}R</span>
+             <span class="new-price">${item.robux}R</span>
+          </div>
+          <div class="discount-tag">SALE</div>
+        `;
+      } else {
+        // NORMAL MODE
+        robuxDisplay = `<span style="color:var(--robux-color); font-weight:700;">${item.robux || '0'}R</span>`;
+      }
+
+      priceHtml = `
+        <div class="price-container">
+          <div class="price-row">
+             <span style="color:#94a3b8;">Money</span>
+             <span class="usd-price">$${item.usd || '0.00'}</span>
+          </div>
+          <div class="price-row">
+             <span style="color:#94a3b8;">Robux</span>
+             <div class="robux-price">${robuxDisplay}</div>
+          </div>
+        </div>
+      `;
+    }
 
     card.innerHTML = `
       <div class="media-container">
         ${mediaHtml}
         <div class="click-overlay"></div> 
-        ${priceHtml}
       </div>
       <div class="card-info">
         <div class="card-title">${item.title}</div>
         <div class="card-tag">${item.type.toUpperCase()}</div>
+        ${priceHtml}
       </div>
     `;
     grid.appendChild(card);
@@ -373,6 +453,7 @@ function render(filter = "") {
 
 // --- TABS ---
 function switchTab(tab, btnElement) {
+  if (!btnElement) return; // safety
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   btnElement.classList.add('active');
   currentTab = tab;
@@ -413,6 +494,13 @@ function closeLightbox(e) {
 }
 
 function handleSearch(val) { render(val); }
+
+// --- SYNC LISTENER ---
+window.addEventListener('storage', (e) => {
+  if (e.key === 'force_refresh_trigger') {
+    location.reload();
+  }
+});
 
 // Initial Render
 render();
