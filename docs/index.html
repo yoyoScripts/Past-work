@@ -69,15 +69,24 @@
     }
 
     video,
-    img {
+    img,
+    iframe {
       width: 100%;
       border-radius: 16px;
       background: #000;
       transition: transform 0.2s ease;
+      display: block;
+    }
+    
+    /* Make iframe generic aspect ratio match video players */
+    iframe {
+      aspect-ratio: 16 / 9;
+      border: none;
     }
 
     video:hover,
-    img:hover {
+    img:hover,
+    iframe:hover {
       transform: scale(1.02);
     }
   </style>
@@ -115,7 +124,8 @@ const sections = [
   {
     title: "Combat systems",
     items: [
-      { type: "video", src: "assets/movement/dash.mp4" }
+      // EXAMPLE: This is how you add a YouTube video
+      { type: "youtube", src: "https://www.youtube.com/embed/dQw4w9WgXcQ" } 
     ]
   }
 ];
@@ -138,6 +148,7 @@ function renderPortfolio(filterText = "") {
 
       section.items.forEach(item => {
         if (item.type === "video") {
+          // Handle Local MP4
           const vid = document.createElement('video');
           vid.controls = true;
           vid.muted = true;
@@ -149,7 +160,17 @@ function renderPortfolio(filterText = "") {
           
           vid.appendChild(src);
           grid.appendChild(vid);
+
+        } else if (item.type === "youtube") {
+          // Handle YouTube
+          const iframe = document.createElement('iframe');
+          iframe.src = item.src;
+          iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+          iframe.allowFullscreen = true;
+          grid.appendChild(iframe);
+
         } else {
+          // Handle Images
           const img = document.createElement('img');
           img.src = item.src;
           grid.appendChild(img);
