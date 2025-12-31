@@ -111,20 +111,21 @@
     /* --- GRIDS & CARDS --- */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 30px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Slightly smaller cards */
+      gap: 25px;
       padding-bottom: 100px;
     }
 
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 20px;
+      border-radius: 16px;
       overflow: hidden;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       position: relative;
       animation: slideUp 0.5s ease forwards;
       opacity: 0;
+      cursor: pointer; /* Indicates clickability */
     }
 
     .card:hover {
@@ -137,6 +138,19 @@
       aspect-ratio: 16/9;
       background: #000;
       position: relative;
+      pointer-events: none; /* Disables interaction with video in grid view */
+    }
+
+    /* Overlay to capture clicks on videos/iframes */
+    .click-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      cursor: pointer;
+      background: transparent;
     }
 
     .media-container img, 
@@ -149,22 +163,75 @@
       border: none;
     }
 
-    .card-info { padding: 20px; }
+    .card-info { padding: 15px 20px; }
     
     .card-title {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: 600;
       margin-bottom: 8px;
     }
 
     .card-tag {
       display: inline-block;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       padding: 4px 10px;
       background: rgba(255,255,255,0.05);
       border-radius: 12px;
       color: var(--text-muted);
     }
+
+    /* --- LIGHTBOX (EXPAND VIEW) --- */
+    .lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 1000;
+      display: none; /* Hidden by default */
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .lightbox.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .lightbox-content-wrapper {
+      width: 80%;
+      max-width: 1000px;
+      aspect-ratio: 16/9;
+      background: #000;
+      box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .lightbox-content-wrapper iframe,
+    .lightbox-content-wrapper video,
+    .lightbox-content-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: #fff;
+      font-size: 40px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: color 0.2s;
+    }
+    .close-btn:hover { color: var(--accent); }
 
     /* --- STORE SPECIFIC --- */
     .price-tag {
@@ -177,26 +244,7 @@
       padding: 6px 12px;
       border-radius: 8px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      z-index: 10;
-    }
-
-    .btn-buy {
-      width: 100%;
-      margin-top: 15px;
-      padding: 12px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-
-    .btn-buy:hover {
-      background: var(--accent);
-      border-color: var(--accent);
-      box-shadow: 0 0 15px var(--accent-glow);
+      z-index: 5;
     }
 
     /* --- DASHBOARD --- */
@@ -253,6 +301,12 @@
   </style>
 </head>
 <body>
+
+  <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+    <div class="close-btn" onclick="closeLightbox(event)">&times;</div>
+    <div class="lightbox-content-wrapper" id="lightbox-wrapper">
+      </div>
+  </div>
 
   <nav class="sidebar">
     <div class="nav-btn active" onclick="switchTab('work', this)">
@@ -375,49 +429,80 @@ function render(filter = "") {
     const card = document.createElement('div');
     card.className = "card";
     card.style.animationDelay = `${index * 0.1}s`;
+    
+    // Add Click event to Open Lightbox
+    // We pass the type and src to the function
+    card.onclick = () => openLightbox(item.type, item.src);
 
     // MEDIA GENERATION
     let mediaHtml = '';
     if (item.type === 'youtube') {
-      // Auto-convert standard YT links to Embed if user pasted wrong one
       let src = item.src;
       if(src.includes("watch?v=")) src = src.replace("watch?v=", "embed/");
       if(src.includes("youtu.be/")) src = src.replace("youtu.be/", "www.youtube.com/embed/");
-      
       mediaHtml = `<iframe src="${src}" allowfullscreen></iframe>`;
     } else if (item.type === 'video') {
-      mediaHtml = `<video src="${item.src}" controls loop muted></video>`;
+      mediaHtml = `<video src="${item.src}" muted></video>`;
     } else {
       mediaHtml = `<img src="${item.src}" alt="${item.title}">`;
     }
 
     // STORE ELEMENTS
     const priceHtml = item.price ? `<div class="price-tag">$${item.price}</div>` : '';
-    const buyBtn = item.price ? `<button class="btn-buy">Purchase</button>` : '';
+    // Note: Removed buy button from card grid to keep it clean, 
+    // we can add it to the lightbox or just keep price tag.
 
     card.innerHTML = `
       <div class="media-container">
         ${mediaHtml}
+        <div class="click-overlay"></div> 
         ${priceHtml}
       </div>
       <div class="card-info">
         <div class="card-title">${item.title}</div>
         <div class="card-tag">${item.type.toUpperCase()}</div>
-        ${buyBtn}
       </div>
     `;
     grid.appendChild(card);
   });
 }
 
+// --- LIGHTBOX FUNCTIONS ---
+const lightbox = document.getElementById('lightbox');
+const lightboxWrapper = document.getElementById('lightbox-wrapper');
+
+function openLightbox(type, src) {
+  lightboxWrapper.innerHTML = ""; // Clear previous content
+  
+  if (type === 'youtube') {
+    // Add autoplay to URL
+    let autoSrc = src + "?autoplay=1"; 
+    lightboxWrapper.innerHTML = `<iframe src="${autoSrc}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+  } else if (type === 'video') {
+    lightboxWrapper.innerHTML = `<video src="${src}" controls autoplay loop style="width:100%; height:100%"></video>`;
+  } else {
+    lightboxWrapper.innerHTML = `<img src="${src}" style="width:100%; height:100%; object-fit:contain;">`;
+  }
+  
+  lightbox.classList.add('active');
+}
+
+function closeLightbox(e) {
+  // Close if clicked on background or close button, but NOT the content wrapper
+  if (e.target !== lightboxWrapper && !lightboxWrapper.contains(e.target)) {
+    lightbox.classList.remove('active');
+    // Stop video playback by clearing content
+    setTimeout(() => { lightboxWrapper.innerHTML = ""; }, 300);
+  }
+}
+
 // --- TAB SWITCHING ---
 function switchTab(tab, btnElement) {
-  // Update UI classes
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   btnElement.classList.add('active');
   
   currentTab = tab;
-  searchInput.value = ""; // clear search
+  searchInput.value = ""; 
 
   if (tab === 'work') {
     pageTitle.innerText = "Past Work";
