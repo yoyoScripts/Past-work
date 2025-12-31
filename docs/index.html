@@ -58,7 +58,7 @@
       position: relative;
       white-space: nowrap;
       overflow: hidden;
-      text-decoration: none; /* For link */
+      text-decoration: none;
     }
 
     .nav-btn:hover, .nav-btn.active {
@@ -203,10 +203,11 @@
       margin-top: 15px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      background: rgba(0,0,0,0.2);
-      padding: 10px;
+      gap: 8px;
+      background: rgba(0,0,0,0.3);
+      padding: 12px;
       border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
     .price-row {
@@ -214,46 +215,48 @@
       justify-content: space-between;
       align-items: center;
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 500;
     }
 
-    .usd-price { color: #fff; }
+    .usd-price { color: #fff; font-weight: 700; }
     
     .robux-price { 
       color: var(--robux-color); 
       display: flex; 
       align-items: center; 
-      gap: 5px; 
+      justify-content: flex-end;
+      gap: 8px; 
     }
 
-    /* Discount Styling */
+    /* Cool Discount Logic */
     .discount-wrapper {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      align-items: baseline;
+      gap: 6px;
     }
 
     .old-price {
       text-decoration: line-through;
       color: #64748b;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 400;
     }
 
     .new-price {
       color: var(--robux-color);
       font-weight: 800;
-      font-size: 1rem;
-      text-shadow: 0 0 10px rgba(0, 176, 111, 0.4);
+      font-size: 1.1rem;
+      text-shadow: 0 0 15px rgba(0, 176, 111, 0.6); /* Green Glow */
     }
 
-    .discount-tag {
+    .sale-badge {
+      font-size: 0.7rem;
       background: var(--robux-color);
       color: #000;
-      font-size: 0.65rem;
-      font-weight: 800;
       padding: 2px 6px;
       border-radius: 4px;
-      margin-left: auto;
+      font-weight: 800;
+      transform: translateY(-2px);
     }
 
     /* --- LIGHTBOX --- */
@@ -361,16 +364,9 @@
 
 <script>
 // --- DATA LOADING ---
-const defaultWork = [
-  { title: "Simple Systems", type: "image", src: "assets/project1.png" },
-  { title: "Grand Marshal UI", type: "image", src: "assets/project2.png" },
-  { title: "Combat System", type: "youtube", src: "https://www.youtube.com/embed/O73KBqbknt0" }
-];
-
-const defaultStore = [
-  { title: "Rank Management GUI", type: "image", src: "assets/project1.png", usd: 15, robux: 4500 },
-  { title: "Clan War System", type: "image", src: "assets/project2.png", usd: 40, robux: 6000, oldRobux: 8000 }
-];
+// Defaults are now EMPTY to allow dashboard full control
+const defaultWork = [];
+const defaultStore = [];
 
 let workData = JSON.parse(localStorage.getItem('myWorkData')) || defaultWork;
 let storeData = JSON.parse(localStorage.getItem('myStoreData')) || defaultStore;
@@ -387,7 +383,14 @@ function render(filter = "") {
   let dataToRender = currentTab === 'work' ? workData : storeData;
   const term = filter.toLowerCase();
   
-  dataToRender.filter(item => item.title.toLowerCase().includes(term)).forEach((item, index) => {
+  const items = dataToRender.filter(item => item.title.toLowerCase().includes(term));
+
+  if (items.length === 0) {
+    grid.innerHTML = `<div style="color:#666; font-style:italic;">No items found. Add from Dashboard.</div>`;
+    return;
+  }
+
+  items.forEach((item, index) => {
     const card = document.createElement('div');
     card.className = "card";
     card.style.animationDelay = `${index * 0.1}s`;
@@ -408,14 +411,14 @@ function render(filter = "") {
     if (currentTab === 'store') {
       // Robux Logic
       let robuxDisplay = '';
-      if (item.oldRobux && item.oldRobux > item.robux) {
-        // DISCOUNT MODE
+      if (item.oldRobux && Number(item.oldRobux) > Number(item.robux)) {
+        // DISCOUNT MODE (Glow + Crossed Out)
         robuxDisplay = `
           <div class="discount-wrapper">
              <span class="old-price">${item.oldRobux}R</span>
              <span class="new-price">${item.robux}R</span>
+             <span class="sale-badge">SALE</span>
           </div>
-          <div class="discount-tag">SALE</div>
         `;
       } else {
         // NORMAL MODE
