@@ -3,6 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
+  
+  <script>
+    // --- CHANGE YOUR PASSWORD HERE ---
+    const CONFIG_PASS = "admin123"; 
+
+    const userPass = prompt("Enter Admin Password:");
+    if (userPass !== CONFIG_PASS) {
+      document.write("<h1 style='color:red; text-align:center; font-family:sans-serif; margin-top:50px;'>ACCESS DENIED</h1>");
+      throw new Error("Access Denied"); // Stops the rest of the page from loading
+    }
+  </script>
+
   <style>
     :root {
       --bg: #05080f;
@@ -191,8 +203,7 @@
   </div>
 
 <script>
-// --- INITIALIZATION ---
-// Match index.html: defaults only if NULL.
+// --- DEFAULTS ---
 const defaultWork = [
   { id: 1, title: "Simple Systems", type: "image", src: "assets/project1.png" },
   { id: 2, title: "Grand Marshal UI", type: "image", src: "assets/project2.png" },
@@ -204,6 +215,7 @@ const defaultStore = [
   { id: 102, title: "Clan War System", type: "image", src: "assets/project2.png", usd: 40, robux: 6000, oldRobux: 8000 }
 ];
 
+// --- INITIALIZATION ---
 let workData = JSON.parse(localStorage.getItem('myWorkData'));
 let storeData = JSON.parse(localStorage.getItem('myStoreData'));
 
@@ -216,6 +228,7 @@ if (storeData === null) {
   localStorage.setItem('myStoreData', JSON.stringify(storeData));
 }
 
+// --- LOGIC ---
 function toggleInputs() {
   const section = document.getElementById('inp-section').value;
   const type = document.getElementById('inp-type').value;
@@ -246,11 +259,7 @@ function addItem() {
     const fileInput = document.getElementById('inp-file');
     const file = fileInput.files[0];
     if (!file) return alert("Select an image");
-    
-    // 2MB Limit
-    if (file.size > 2 * 1024 * 1024) {
-      return alert("File is too large! Max size is 2MB.");
-    }
+    if (file.size > 2 * 1024 * 1024) return alert("File is too large! Max size is 2MB.");
 
     const reader = new FileReader();
     reader.onload = function(e) {
